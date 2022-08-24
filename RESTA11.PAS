@@ -1,0 +1,152 @@
+unit resta11;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  ExtCtrls, StdCtrls, Menus, resta12;
+
+type
+  TForm1 = class(TForm)
+    img: TPaintBox;
+    MainMenu1: TMainMenu;
+    Jogo1: TMenuItem;
+    Ajuda1: TMenuItem;
+    Sobre1: TMenuItem;
+    Novo1: TMenuItem;
+    Sair1: TMenuItem;
+    cbimg: TImage;
+    sbimg: TImage;
+    procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormPaint(Sender: TObject);
+    procedure imgMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure imgMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure Sobre1Click(Sender: TObject);
+    procedure Sair1Click(Sender: TObject);
+    procedure Novo1Click(Sender: TObject);
+  private
+  	function verifica:boolean;
+    { Private declarations }
+  public
+    cb,sb : tbitmap;
+    bx,by : integer;
+    a : array[1..7,1..7]of byte;
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.DFM}
+
+procedure TForm1.FormCreate(Sender: TObject);
+var x,y: integer;
+begin
+  cb:=tbitmap.create;
+  sb:=tbitmap.create;
+  cb.assign(cbimg.picture);
+  sb.assign(sbimg.picture);
+  for x:=1 to 7 do
+  for y:=1 to 7 do
+    begin
+      a[x,y]:=0;
+      if (x>2)and(x<6)then a[x,y]:=1;
+      if (y>2)and(y<6)then a[x,y]:=1;
+      if (x=4)and(y=4)then a[x,y]:=2;
+    end;
+end;
+
+procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  cb.destroy;
+  sb.destroy;
+end;
+
+procedure TForm1.FormPaint(Sender: TObject);
+var x,y : integer;
+begin
+  for x:=1 to 7 do
+  for y:=1 to 7 do
+  case a[x,y] of
+    0 : ;
+    1 : img.canvas.draw((x-1)*50,(y-1)*50,cb);
+    2 : img.canvas.draw((x-1)*50,(y-1)*50,sb);
+  end;
+end;
+
+procedure TForm1.imgMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  if ssleft in shift then
+    begin
+      bx:=(x div 50)+1;
+      by:=(y div 50)+1;
+    end;
+end;
+
+procedure TForm1.imgMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  x:=(x div 50)+1;
+  y:=(y div 50)+1;
+  if (x<>bx)and(y<>by)then exit;
+  if (x<>bx)and(abs(x-bx)<>2) then exit;
+  if (y<>by)and(abs(y-by)<>2) then exit;
+  if a[bx,by]<>1 then exit;
+  if a[x,y]<>2 then exit;
+  if a[x+(bx-x)div 2,y+(by-y)div 2]<>1 then exit;
+  a[x,y]:=1;
+  a[bx,by]:=2;
+  a[x+(bx-x)div 2,y+(by-y)div 2]:=2;
+  formpaint(self);
+  if verifica then
+    begin
+      messagedlg('Fim do Jogo',mtinformation,[mbok],0);
+      cb.destroy;
+      sb.destroy;
+      formcreate(self);
+      repaint;
+    end;
+end;
+
+function TForm1.verifica:boolean;
+var x,y : integer;
+begin
+  verifica:=true;
+  for x:=1 to 7 do
+  for y:=1 to 7 do
+  if a[x,y]=1 then
+    begin
+      if (x>2)and(a[x-2,y]=2)and(a[x-1,y]=1)then verifica:=false;
+      if (x<6)and(a[x+2,y]=2)and(a[x+1,y]=1)then verifica:=false;
+      if (y>2)and(a[x,y-2]=2)and(a[x,y-1]=1)then verifica:=false;
+      if (y<6)and(a[x,y+2]=2)and(a[x,y+1]=1)then verifica:=false;
+    end;
+end;
+
+procedure TForm1.Sobre1Click(Sender: TObject);
+begin
+  form2.showmodal;
+end;
+
+procedure TForm1.Sair1Click(Sender: TObject);
+begin
+  sb.destroy;
+  cb.destroy;
+  application.terminate;
+end;
+
+procedure TForm1.Novo1Click(Sender: TObject);
+begin
+  cb.destroy;
+  sb.destroy;
+  formcreate(self);
+  repaint;
+end;
+
+end.
